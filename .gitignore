@@ -3,3 +3,7 @@
 
 # idea
 .idea/*
+
+# -- Added by ichichou --
+
+.build/
