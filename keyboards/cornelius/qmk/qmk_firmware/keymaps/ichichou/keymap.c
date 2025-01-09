@@ -42,9 +42,9 @@
 
 // Home Row Mods
 // Center Column Mods
-#define RSFT_RBRC RSFT_T(KC_RBRC)
-#define RCTL_LBRC RCTL_T(KC_LBRC)
-#define RGUI_GRV  RGUI_T(KC_GRV)
+#define LSFT_RBRC SFT_T(KC_RBRC)
+#define LCTL_LBRC CTL_T(KC_LBRC)
+#define LGUI_GRV  GUI_T(KC_GRV)
 
 // }}}
 
@@ -139,11 +139,11 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
       return true;
 
     // -- Home Row Mods
-    case RCTL_LBRC:
+    case LCTL_LBRC:
       return true;
-    case RSFT_RBRC:
+    case LSFT_RBRC:
       return true;
-    case RGUI_GRV:
+    case LGUI_GRV:
       return true;
 
     // Otherwise
@@ -244,7 +244,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [_NAV] = LAYOUT(
     _______, LSG(KC_C), KC_LPRN,   KC_RPRN,   MEH(KC_C), LSG(KC_T),    G(KC_TAB), C(KC_TAB), KC_LCBR, KC_RCBR, G(KC_RBRC), G(KC_UP),
-    _______, LSG(KC_A), RCTL_LBRC, RSFT_RBRC, LCG(KC_V), LCG(KC_S),    KC_LEFT,   KC_DOWN,   KC_UP,   KC_RGHT, G(KC_LBRC), G(KC_DOWN),
+    _______, LSG(KC_A), LCTL_LBRC, LSFT_RBRC, LCG(KC_V), LCG(KC_S),    KC_LEFT,   KC_DOWN,   KC_UP,   KC_RGHT, G(KC_LBRC), G(KC_DOWN),
     _______, LSG(KC_Z), G(KC_X),   G(KC_C),   LSG(KC_V), G(KC_V),      KC_BSPC,   KC_DEL,    C(KC_A), C(KC_E), XXXXXXX,    XXXXXXX,
     _______, _______,   _______,   _______,   _______,   _______,      _______,   _______,   _______, _______, _______,    _______
   ),
