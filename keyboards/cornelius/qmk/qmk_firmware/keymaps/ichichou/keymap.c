@@ -37,11 +37,11 @@
 #define RSFT_BSLS  RSFT_T(KC_BSLS)
 #define LCTL_ESC   CTL_T(KC_ESC)
 #define RCTL_ENT   RCTL_T(KC_ENT)
+#define RCTL_QUOT  RCTL_T(KC_QUOT)
 #define LGUI_LNG2  GUI_T(KC_LNG2)
 #define RGUI_LNG1  RGUI_T(KC_LNG1)
 
 // Home Row Mods
-// Center Column Mods
 #define LSFT_RBRC SFT_T(KC_RBRC)
 #define LCTL_LBRC CTL_T(KC_LBRC)
 #define LGUI_GRV  GUI_T(KC_GRV)
@@ -132,6 +132,8 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     case LCTL_ESC:
       return true;
     case RCTL_ENT:
+      return true;
+    case RCTL_QUOT:
       return true;
     case LGUI_LNG2:
       return true;
@@ -236,8 +238,8 @@ bool get_combo_must_hold(uint16_t index, combo_t *combo) {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [_BASE] = LAYOUT(
-    RHYPR_TAB, KC_Q,    KC_W,    KC_E,      KC_R,    KC_T,        KC_Y,     KC_U,    KC_I,      KC_O,    KC_P,    RHYPR_BSPC,
-    LCTL_ESC,  KC_A,    KC_S,    KC_D,      KC_F,    KC_G,        KC_H,     KC_J,    KC_K,      KC_L,    KC_SCLN, KC_QUOT,
+    RHYPR_TAB, KC_Q,    KC_W,    KC_E,      KC_R,    KC_T,        KC_Y,     KC_U,    KC_I,      KC_O,    KC_P,    KC_BSPC,
+    LCTL_ESC,  KC_A,    KC_S,    KC_D,      KC_F,    KC_G,        KC_H,     KC_J,    KC_K,      KC_L,    KC_SCLN, RCTL_QUOT,
     LSFT_CW,   KC_Z,    KC_X,    KC_C,      KC_V,    KC_B,        KC_N,     KC_M,    KC_COMM,   KC_DOT,  KC_SLSH, RSFT_BSLS,
     MO(_FN),   KC_RCTL, KC_LALT, LGUI_LNG2, NAV_ESC, LSFT_SPC,    RCTL_ENT, SYM_TAB, RGUI_LNG1, KC_DOWN, KC_UP,   FN_GRV
   ),
