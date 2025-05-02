@@ -1,3 +1,8 @@
+// KB: Cornelius
+// KM: ichichou
+
+// -- Copyright {{{
+
 /* Copyright 2020 foostan
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,11 +19,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// }}}
+
+// -- #include {{{
+
 #include QMK_KEYBOARD_H
 
-// -- Define Macros {{{
+// }}}
 
-// Modifier Keycodes
+// -- #define {{{
+
+// Modifiers
 #define RHYPR_T(kc) MT(MOD_RCTL | MOD_RSFT | MOD_RALT | MOD_RGUI, kc)
 #define LCG(kc)     (QK_LCTL | QK_LGUI | (kc))
 
@@ -34,7 +45,7 @@
 #define RHYPR_TAB  RHYPR_T(KC_TAB)
 #define RHYPR_BSPC RHYPR_T(KC_BSPC)
 #define LSFT_SPC   SFT_T(KC_SPC)
-#define LSFT_CW    SFT_T(CW_TOGG)  // マクロではなくカスタムキーコードで実装してみる
+#define LSFT_CW    SFT_T(CW_TOGG)
 #define RSFT_SLSH  RSFT_T(KC_SLSH)
 #define RSFT_BSLS  RSFT_T(KC_BSLS)
 #define LCTL_ESC   CTL_T(KC_ESC)
@@ -51,19 +62,35 @@
 #define LGUI_GRV  GUI_T(KC_GRV)
 
 // MTGAP
-#define MTGAP_KEYCODE(name, mtgap_key, qwerty_key) \
-  case name:                                       \
-    if (record->event.pressed) {                   \
-      if ((get_mods() & ~(MOD_MASK_SHIFT)) == 0) { \
-        register_code(mtgap_key);                  \
-      } else {                                     \
-        register_code(qwerty_key);                 \
-      }                                            \
-    } else {                                       \
-      unregister_code(mtgap_key);                  \
-      unregister_code(qwerty_key);                 \
-    }                                              \
-    return false;
+#define MTGAP_KEYCODE(name, mtgap_key, qwerty_key, mt_var, qwerty_var) \
+  case name: \
+    { \
+      static bool mt_##mtgap_var##_registered; \
+      static bool qw_##qwerty_var##_registered; \
+      \
+      if (record->event.pressed) { \
+        if ((mod_state & ~(MOD_MASK_SHIFT)) == 0) { \
+          register_code(mtgap_key); \
+          mt_##mtgap_var##_registered = true; \
+          return false; \
+        } else { \
+          register_code(qwerty_key); \
+          qw_##qwerty_var##_registered = true; \
+          return false; \
+        } \
+      } else { \
+        if (mt_##mtgap_var##_registered) { \
+          unregister_code(mtgap_key); \
+          mt_##mtgap_var##_registered = false; \
+          return false; \
+        } else if (qw_##qwerty_var##_registered) { \
+          unregister_code(qwerty_key); \
+          qw_##qwerty_var##_registered = false; \
+          return false; \
+        } \
+      } \
+      return false; \
+    }
 
 // }}}
 
@@ -86,7 +113,6 @@ enum my_keycodes {
   SAMPLE = QK_USER,
 
   // MTGAP {{{
-
   MT_A,
   MT_B,
   MT_C,
@@ -118,65 +144,75 @@ enum my_keycodes {
   MT_COMM,
   MT_DOT,
   MT_SLSH,
-
+  RCTL_MT_Q,
   // }}}
 
 };
 
 // }}}
 
-// -- Behavior of Any Keycode {{{
+// -- process_record_user {{{
 
+uint8_t mod_state;
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  mod_state = get_mods();
   switch (keycode) {
 
-    // [Tap] Caps Word, [Hold] Shift
-    //
-    // マクロの上書きではなくカスタムキーコードで実装してみる
-    case LSFT_CW:
+    case SFT_T(CW_TOGG):
       if (record->tap.count && record->event.pressed) {
-        caps_word_toggle();
+        caps_word_on();
         return false;
       }
       return true;
 
-    // MTGAP (mod-1) {{{
+    // 動作しない
+    case RCTL_T(MT_Q):
+      if (record->tap.count && record->event.pressed) {
+        tap_code16(MT_Q);
+        return false;
+      }
+      return true;
 
+    // RCTL_MT_Q はマクロと別に実装する必要がある
+    case RCTL_MT_Q:
+      return false;
+
+    // MTGAP (Mod-Q) {{{
+    //
     // ypou; kdlcw
     // inea, mhtsr q
     // z/'.x bfgvj
-    MTGAP_KEYCODE(MT_A,    KC_A,    KC_F)
-    MTGAP_KEYCODE(MT_B,    KC_B,    KC_N)
-    MTGAP_KEYCODE(MT_C,    KC_C,    KC_O)
-    MTGAP_KEYCODE(MT_D,    KC_D,    KC_U)
-    MTGAP_KEYCODE(MT_E,    KC_E,    KC_D)
-    MTGAP_KEYCODE(MT_F,    KC_F,    KC_M)
-    MTGAP_KEYCODE(MT_G,    KC_G,    KC_COMM)
-    MTGAP_KEYCODE(MT_H,    KC_H,    KC_J)
-    MTGAP_KEYCODE(MT_I,    KC_I,    KC_A)
-    MTGAP_KEYCODE(MT_J,    KC_J,    KC_SLSH)
-    MTGAP_KEYCODE(MT_K,    KC_K,    KC_Y)
-    MTGAP_KEYCODE(MT_L,    KC_L,    KC_I)
-    MTGAP_KEYCODE(MT_M,    KC_M,    KC_H)
-    MTGAP_KEYCODE(MT_N,    KC_N,    KC_S)
-    MTGAP_KEYCODE(MT_O,    KC_O,    KC_E)
-    MTGAP_KEYCODE(MT_P,    KC_P,    KC_W)
-    MTGAP_KEYCODE(MT_Q,    KC_Q,    KC_QUOT)
-    MTGAP_KEYCODE(MT_R,    KC_R,    KC_SCLN)
-    MTGAP_KEYCODE(MT_S,    KC_S,    KC_L)
-    MTGAP_KEYCODE(MT_T,    KC_T,    KC_K)
-    MTGAP_KEYCODE(MT_U,    KC_U,    KC_R)
-    MTGAP_KEYCODE(MT_V,    KC_V,    KC_DOT)
-    MTGAP_KEYCODE(MT_W,    KC_W,    KC_P)
-    MTGAP_KEYCODE(MT_X,    KC_X,    KC_B)
-    MTGAP_KEYCODE(MT_Y,    KC_Y,    KC_Q)
-    MTGAP_KEYCODE(MT_Z,    KC_Z,    KC_Z)
-    MTGAP_KEYCODE(MT_SCLN, KC_SCLN, KC_T)
-    MTGAP_KEYCODE(MT_QUOT, KC_QUOT, KC_C)
-    MTGAP_KEYCODE(MT_COMM, KC_COMM, KC_G)
-    MTGAP_KEYCODE(MT_DOT,  KC_DOT,  KC_V)
-    MTGAP_KEYCODE(MT_SLSH, KC_SLSH, KC_X)
-
+    MTGAP_KEYCODE(MT_A,    KC_A,    KC_F,    a,    f)
+    MTGAP_KEYCODE(MT_B,    KC_B,    KC_N,    b,    n)
+    MTGAP_KEYCODE(MT_C,    KC_C,    KC_O,    c,    o)
+    MTGAP_KEYCODE(MT_D,    KC_D,    KC_U,    d,    u)
+    MTGAP_KEYCODE(MT_E,    KC_E,    KC_D,    e,    d)
+    MTGAP_KEYCODE(MT_F,    KC_F,    KC_M,    f,    m)
+    MTGAP_KEYCODE(MT_G,    KC_G,    KC_COMM, g,    comm)
+    MTGAP_KEYCODE(MT_H,    KC_H,    KC_J,    h,    j)
+    MTGAP_KEYCODE(MT_I,    KC_I,    KC_A,    i,    a)
+    MTGAP_KEYCODE(MT_J,    KC_J,    KC_SLSH, j,    slsh)
+    MTGAP_KEYCODE(MT_K,    KC_K,    KC_Y,    k,    y)
+    MTGAP_KEYCODE(MT_L,    KC_L,    KC_I,    l,    i)
+    MTGAP_KEYCODE(MT_M,    KC_M,    KC_H,    m,    h)
+    MTGAP_KEYCODE(MT_N,    KC_N,    KC_S,    n,    s)
+    MTGAP_KEYCODE(MT_O,    KC_O,    KC_E,    o,    e)
+    MTGAP_KEYCODE(MT_P,    KC_P,    KC_W,    p,    w)
+    MTGAP_KEYCODE(MT_Q,    KC_Q,    KC_QUOT, q,    quot)
+    MTGAP_KEYCODE(MT_R,    KC_R,    KC_SCLN, r,    scln)
+    MTGAP_KEYCODE(MT_S,    KC_S,    KC_L,    s,    l)
+    MTGAP_KEYCODE(MT_T,    KC_T,    KC_K,    t,    k)
+    MTGAP_KEYCODE(MT_U,    KC_U,    KC_R,    u,    r)
+    MTGAP_KEYCODE(MT_V,    KC_V,    KC_DOT,  v,    dot)
+    MTGAP_KEYCODE(MT_W,    KC_W,    KC_P,    w,    p)
+    MTGAP_KEYCODE(MT_X,    KC_X,    KC_B,    x,    b)
+    MTGAP_KEYCODE(MT_Y,    KC_Y,    KC_Q,    y,    q)
+    MTGAP_KEYCODE(MT_Z,    KC_Z,    KC_Z,    z,    z)
+    MTGAP_KEYCODE(MT_SCLN, KC_SCLN, KC_T,    scln, t)
+    MTGAP_KEYCODE(MT_QUOT, KC_QUOT, KC_C,    quot, c)
+    MTGAP_KEYCODE(MT_COMM, KC_COMM, KC_G,    comm, g)
+    MTGAP_KEYCODE(MT_DOT,  KC_DOT,  KC_V,    dot,  v)
+    MTGAP_KEYCODE(MT_SLSH, KC_SLSH, KC_X,    slsh, x)
     // }}}
 
     // Otherwise
@@ -184,7 +220,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return true;
 
   }
-  return true;
 }
 
 // }}}
@@ -208,7 +243,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 //   &lgui_l_override,
 // };
 
-// -- }}}
+// }}}
 
 // -- Combos {{{
 
@@ -288,7 +323,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
 
-    // Layer-Tap Keys
+    // Layer-Tap
     case NAV_ESC: return true;
     case NAV_TAB: return true;
     case SYM_TAB: return true;
@@ -296,7 +331,7 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     case FN_BSLS: return true;
     case FN_GRV:  return true;
 
-    // Mod-Tap Keys
+    // Mod-Tap
     case RHYPR_TAB:  return true;
     case RHYPR_BSPC: return true;
     case LSFT_SPC:   return true;
@@ -316,6 +351,9 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     case LSFT_RBRC: return true;
     case LGUI_GRV:  return true;
 
+    // MTGAP
+    case RCTL_MT_Q: return true;
+
     // Otherwise
     default:
       return false;
@@ -326,15 +364,15 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
 // Permissive Hold Mode
 bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
-
     // Otherwise
     default:
       return false;
-
   }
 }
 
 // }}}
+
+// -- Keymaps {{{
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
@@ -381,3 +419,5 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 
 };
+
+// }}}
