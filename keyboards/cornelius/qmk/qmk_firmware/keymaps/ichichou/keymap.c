@@ -165,18 +165,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       }
       return true;
 
-    // 動作しない
-    case RCTL_T(MT_Q):
-      if (record->tap.count && record->event.pressed) {
-        tap_code16(MT_Q);
-        return false;
-      }
-      return true;
-
-    // RCTL_MT_Q はマクロと別に実装する必要がある
-    case RCTL_MT_Q:
-      return false;
-
     // MTGAP (Mod-Q) {{{
     //
     // ypou; kdlcw
@@ -213,6 +201,51 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     MTGAP_KEYCODE(MT_COMM, KC_COMM, KC_G,    comm, g)
     MTGAP_KEYCODE(MT_DOT,  KC_DOT,  KC_V,    dot,  v)
     MTGAP_KEYCODE(MT_SLSH, KC_SLSH, KC_X,    slsh, x)
+
+    // Hold 時の動作が機能せず、MT_Q と同じ挙動になる
+    case RCTL_MT_Q:
+      {
+        static bool mt_q_registered;
+        static bool qw_quot_registered;
+        static bool rctl_registered;
+
+        // On tap
+        if (record->tap.count && record->event.pressed) {
+          if ((mod_state & ~(MOD_MASK_SHIFT)) == 0) {
+            register_code(KC_Q);
+            mt_q_registered = true;
+            return false;
+          } else {
+            register_code(KC_QUOT);
+            qw_quot_registered = true;
+            return false;
+          }
+
+        // On hold
+        } else if (record->event.pressed) {
+          register_code(KC_RCTL);
+          rctl_registered = true;
+          return false;
+
+        // When key released
+        } else {
+          if (mt_q_registered) {
+            unregister_code(KC_Q);
+            mt_q_registered = false;
+            return false;
+          } else if (qw_quot_registered) {
+            unregister_code(KC_QUOT);
+            qw_quot_registered = false;
+            return false;
+          } else if (rctl_registered) {
+            unregister_code(KC_RCTL);
+            rctl_registered = false;
+            return false;
+          }
+        }
+        return false;
+      }
+
     // }}}
 
     // Otherwise
@@ -391,7 +424,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 
   [_NAV] = LAYOUT(
-    _______, LSG(KC_C), KC_LPRN,   KC_RPRN,   MEH(KC_C), LSG(KC_T),    G(KC_TAB), C(KC_TAB), KC_LCBR, KC_RCBR, G(KC_RBRC), G(KC_UP),
+    _______, LSG(KC_C), KC_LPRN,   KC_RPRN,   C(KC_TAB), LSG(KC_T),    G(KC_TAB), C(KC_TAB), KC_LCBR, KC_RCBR, G(KC_RBRC), G(KC_UP),
     _______, LSG(KC_A), LCTL_LBRC, LSFT_RBRC, LCG(KC_V), LCG(KC_S),    KC_LEFT,   KC_DOWN,   KC_UP,   KC_RGHT, G(KC_LBRC), G(KC_DOWN),
     _______, LSG(KC_Z), G(KC_X),   G(KC_C),   LSG(KC_V), G(KC_V),      KC_BSPC,   KC_DEL,    C(KC_A), C(KC_E), XXXXXXX,    XXXXXXX,
     _______, _______,   _______,   _______,   _______,   _______,      _______,   _______,   _______, _______, _______,    _______
