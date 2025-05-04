@@ -92,6 +92,8 @@
       return false; \
     }
 
+#define RCTL_MT_Q RCTL_T(MT_Q)
+
 // }}}
 
 // -- Layers {{{
@@ -144,7 +146,6 @@ enum my_keycodes {
   MT_COMM,
   MT_DOT,
   MT_SLSH,
-  RCTL_MT_Q,
   // }}}
 
 };
@@ -165,7 +166,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       }
       return true;
 
-    // MTGAP (Mod-Q) {{{
+    // MTGAP (Mod-1) {{{
 
     // ypou; kdlcw
     // inea, mhtsr q
@@ -203,49 +204,17 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     MTGAP_KEYCODE(MT_DOT,  KC_DOT,  KC_V,    dot,  v)
     MTGAP_KEYCODE(MT_SLSH, KC_SLSH, KC_X,    slsh, x)
 
-    // まったく動作しない
-    case RCTL_MT_Q:
-      {
-        static bool mt_q_registered;
-        static bool qw_quot_registered;
-        static bool rctl_registered;
-
-        // On tap
-        if (record->tap.count && record->event.pressed) {
-          if ((mod_state & ~(MOD_MASK_SHIFT)) == 0) {
-            register_code(KC_Q);
-            mt_q_registered = true;
-            return false;
-          } else {
-            register_code(KC_QUOT);
-            qw_quot_registered = true;
-            return false;
-          }
-
-        // On hold
-        } else if (record->event.pressed) {
-          register_code(KC_RCTL);
-          rctl_registered = true;
+    case RCTL_T(MT_Q):
+      if (record->tap.count && record->event.pressed) {
+        if ((mod_state & ~(MOD_MASK_SHIFT)) == 0) {
+          tap_code(KC_Q);
           return false;
-
-        // When key released
         } else {
-          if (mt_q_registered) {
-            unregister_code(KC_Q);
-            mt_q_registered = false;
-            return false;
-          } else if (qw_quot_registered) {
-            unregister_code(KC_QUOT);
-            qw_quot_registered = false;
-            return false;
-          } else if (rctl_registered) {
-            unregister_code(KC_RCTL);
-            rctl_registered = false;
-            return false;
-          }
+          tap_code(KC_QUOT);
+          return false;
         }
-        return false;
       }
+      return true;
 
     // }}}
 
