@@ -166,10 +166,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return true;
 
     // MTGAP (Mod-Q) {{{
-    //
+
     // ypou; kdlcw
     // inea, mhtsr q
     // z/'.x bfgvj
+
     MTGAP_KEYCODE(MT_A,    KC_A,    KC_F,    a,    f)
     MTGAP_KEYCODE(MT_B,    KC_B,    KC_N,    b,    n)
     MTGAP_KEYCODE(MT_C,    KC_C,    KC_O,    c,    o)
@@ -202,7 +203,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     MTGAP_KEYCODE(MT_DOT,  KC_DOT,  KC_V,    dot,  v)
     MTGAP_KEYCODE(MT_SLSH, KC_SLSH, KC_X,    slsh, x)
 
-    // Hold 時の動作が機能せず、MT_Q と同じ挙動になる
+    // まったく動作しない
     case RCTL_MT_Q:
       {
         static bool mt_q_registered;
@@ -418,7 +419,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [_MTGAP] = LAYOUT(
     RHYPR_TAB, MT_Y,    MT_P,    MT_O,      MT_U,    MT_SCLN,     MT_K,     MT_D,    MT_L,      MT_C,    MT_W,  KC_BSPC,
-    LCTL_ESC,  MT_I,    MT_N,    MT_E,      MT_A,    MT_COMM,     MT_M,     MT_H,    MT_T,      MT_S,    MT_R,  MT_Q,
+    LCTL_ESC,  MT_I,    MT_N,    MT_E,      MT_A,    MT_COMM,     MT_M,     MT_H,    MT_T,      MT_S,    MT_R,  RCTL_MT_Q,
     LSFT_CW,   MT_Z,    MT_SLSH, MT_QUOT,   MT_DOT,  MT_X,        MT_B,     MT_F,    MT_G,      MT_V,    MT_J,  RSFT_BSLS,
     MO(_FN),   KC_RCTL, KC_LALT, LGUI_LNG2, NAV_ESC, LSFT_SPC,    RCTL_ENT, SYM_TAB, RGUI_LNG1, KC_DOWN, KC_UP, FN_GRV
   ),
