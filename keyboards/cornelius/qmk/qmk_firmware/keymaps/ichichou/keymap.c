@@ -21,13 +21,13 @@
 
 // }}}
 
-// -- #include {{{
+// -- Includes {{{
 
 #include QMK_KEYBOARD_H
 
 // }}}
 
-// -- #define {{{
+// -- Macros {{{
 
 // Modifiers
 #define RHYPR_T(kc) MT(MOD_RCTL | MOD_RSFT | MOD_RALT | MOD_RGUI, kc)
@@ -62,37 +62,43 @@
 #define LGUI_GRV  GUI_T(KC_GRV)
 
 // MTGAP
-#define MTGAP_KEYCODE(name, mtgap_key, qwerty_key, mt_var, qwerty_var) \
-  case name: \
-    { \
-      static bool mt_##mtgap_var##_registered; \
-      static bool qw_##qwerty_var##_registered; \
-      \
-      if (record->event.pressed) { \
-        if ((mod_state & ~(MOD_MASK_SHIFT)) == 0) { \
-          register_code(mtgap_key); \
-          mt_##mtgap_var##_registered = true; \
-          return false; \
-        } else { \
-          register_code(qwerty_key); \
-          qw_##qwerty_var##_registered = true; \
-          return false; \
-        } \
-      } else { \
-        if (mt_##mtgap_var##_registered) { \
-          unregister_code(mtgap_key); \
-          mt_##mtgap_var##_registered = false; \
-          return false; \
-        } else if (qw_##qwerty_var##_registered) { \
-          unregister_code(qwerty_key); \
-          qw_##qwerty_var##_registered = false; \
-          return false; \
-        } \
-      } \
-      return false; \
-    }
-
 #define RCTL_MT_Q RCTL_T(MT_Q)
+
+// }}}
+
+// -- Functions {{{
+
+// MTGAP
+static bool process_mtgap_key(uint8_t mtgap_key,
+                              uint8_t qwerty_key,
+                              bool *mtgap_registered,
+                              bool *qwerty_registered,
+                              keyrecord_t *record,
+                              uint8_t mod_state) {
+
+  if (record->event.pressed) {
+    if ((mod_state & ~(MOD_MASK_SHIFT)) == 0) {
+      register_code(mtgap_key);
+      *mtgap_registered = true;
+      return false;
+    } else {
+      register_code(qwerty_key);
+      *qwerty_registered = true;
+      return false;
+    }
+  } else {
+    if (*mtgap_registered) {
+      unregister_code(mtgap_key);
+      *mtgap_registered = false;
+      return false;
+    } else if (*qwerty_registered) {
+      unregister_code(qwerty_key);
+      *qwerty_registered = false;
+      return false;
+    }
+  }
+  return false;
+}
 
 // }}}
 
@@ -166,44 +172,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       }
       return true;
 
-    // MTGAP (Mod-1) {{{
-
-    // ypou; kdlcw
-    // inea, mhtsr q
-    // z/'.x bfgvj
-
-    MTGAP_KEYCODE(MT_A,    KC_A,    KC_F,    a,    f)
-    MTGAP_KEYCODE(MT_B,    KC_B,    KC_N,    b,    n)
-    MTGAP_KEYCODE(MT_C,    KC_C,    KC_O,    c,    o)
-    MTGAP_KEYCODE(MT_D,    KC_D,    KC_U,    d,    u)
-    MTGAP_KEYCODE(MT_E,    KC_E,    KC_D,    e,    d)
-    MTGAP_KEYCODE(MT_F,    KC_F,    KC_M,    f,    m)
-    MTGAP_KEYCODE(MT_G,    KC_G,    KC_COMM, g,    comm)
-    MTGAP_KEYCODE(MT_H,    KC_H,    KC_J,    h,    j)
-    MTGAP_KEYCODE(MT_I,    KC_I,    KC_A,    i,    a)
-    MTGAP_KEYCODE(MT_J,    KC_J,    KC_SLSH, j,    slsh)
-    MTGAP_KEYCODE(MT_K,    KC_K,    KC_Y,    k,    y)
-    MTGAP_KEYCODE(MT_L,    KC_L,    KC_I,    l,    i)
-    MTGAP_KEYCODE(MT_M,    KC_M,    KC_H,    m,    h)
-    MTGAP_KEYCODE(MT_N,    KC_N,    KC_S,    n,    s)
-    MTGAP_KEYCODE(MT_O,    KC_O,    KC_E,    o,    e)
-    MTGAP_KEYCODE(MT_P,    KC_P,    KC_W,    p,    w)
-    MTGAP_KEYCODE(MT_Q,    KC_Q,    KC_QUOT, q,    quot)
-    MTGAP_KEYCODE(MT_R,    KC_R,    KC_SCLN, r,    scln)
-    MTGAP_KEYCODE(MT_S,    KC_S,    KC_L,    s,    l)
-    MTGAP_KEYCODE(MT_T,    KC_T,    KC_K,    t,    k)
-    MTGAP_KEYCODE(MT_U,    KC_U,    KC_R,    u,    r)
-    MTGAP_KEYCODE(MT_V,    KC_V,    KC_DOT,  v,    dot)
-    MTGAP_KEYCODE(MT_W,    KC_W,    KC_P,    w,    p)
-    MTGAP_KEYCODE(MT_X,    KC_X,    KC_B,    x,    b)
-    MTGAP_KEYCODE(MT_Y,    KC_Y,    KC_Q,    y,    q)
-    MTGAP_KEYCODE(MT_Z,    KC_Z,    KC_Z,    z,    z)
-    MTGAP_KEYCODE(MT_SCLN, KC_SCLN, KC_T,    scln, t)
-    MTGAP_KEYCODE(MT_QUOT, KC_QUOT, KC_C,    quot, c)
-    MTGAP_KEYCODE(MT_COMM, KC_COMM, KC_G,    comm, g)
-    MTGAP_KEYCODE(MT_DOT,  KC_DOT,  KC_V,    dot,  v)
-    MTGAP_KEYCODE(MT_SLSH, KC_SLSH, KC_X,    slsh, x)
-
     case RCTL_T(MT_Q):
       if (record->tap.count && record->event.pressed) {
         if ((mod_state & ~(MOD_MASK_SHIFT)) == 0) {
@@ -216,6 +184,47 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       }
       return true;
 
+    // MTGAP (Mod-1) {{{
+
+    // ypou; kdlcw
+    // inea, mhtsr q
+    // z/'.x bfgvj
+
+    static bool mtgap_registered[31];
+    static bool qwerty_registered[31];
+
+    case MT_A:    return process_mtgap_key(KC_A,    KC_F,    &mtgap_registered[0],  &qwerty_registered[0],  record, mod_state);
+    case MT_B:    return process_mtgap_key(KC_B,    KC_N,    &mtgap_registered[1],  &qwerty_registered[1],  record, mod_state);
+    case MT_C:    return process_mtgap_key(KC_C,    KC_O,    &mtgap_registered[2],  &qwerty_registered[2],  record, mod_state);
+    case MT_D:    return process_mtgap_key(KC_D,    KC_U,    &mtgap_registered[3],  &qwerty_registered[3],  record, mod_state);
+    case MT_E:    return process_mtgap_key(KC_E,    KC_D,    &mtgap_registered[4],  &qwerty_registered[4],  record, mod_state);
+    case MT_F:    return process_mtgap_key(KC_F,    KC_M,    &mtgap_registered[5],  &qwerty_registered[5],  record, mod_state);
+    case MT_G:    return process_mtgap_key(KC_G,    KC_COMM, &mtgap_registered[6],  &qwerty_registered[6],  record, mod_state);
+    case MT_H:    return process_mtgap_key(KC_H,    KC_J,    &mtgap_registered[7],  &qwerty_registered[7],  record, mod_state);
+    case MT_I:    return process_mtgap_key(KC_I,    KC_A,    &mtgap_registered[8],  &qwerty_registered[8],  record, mod_state);
+    case MT_J:    return process_mtgap_key(KC_J,    KC_SLSH, &mtgap_registered[9],  &qwerty_registered[9],  record, mod_state);
+    case MT_K:    return process_mtgap_key(KC_K,    KC_Y,    &mtgap_registered[10], &qwerty_registered[10], record, mod_state);
+    case MT_L:    return process_mtgap_key(KC_L,    KC_I,    &mtgap_registered[11], &qwerty_registered[11], record, mod_state);
+    case MT_M:    return process_mtgap_key(KC_M,    KC_H,    &mtgap_registered[12], &qwerty_registered[12], record, mod_state);
+    case MT_N:    return process_mtgap_key(KC_N,    KC_S,    &mtgap_registered[13], &qwerty_registered[13], record, mod_state);
+    case MT_O:    return process_mtgap_key(KC_O,    KC_E,    &mtgap_registered[14], &qwerty_registered[14], record, mod_state);
+    case MT_P:    return process_mtgap_key(KC_P,    KC_W,    &mtgap_registered[15], &qwerty_registered[15], record, mod_state);
+    case MT_Q:    return process_mtgap_key(KC_Q,    KC_QUOT, &mtgap_registered[16], &qwerty_registered[16], record, mod_state);
+    case MT_R:    return process_mtgap_key(KC_R,    KC_SCLN, &mtgap_registered[17], &qwerty_registered[17], record, mod_state);
+    case MT_S:    return process_mtgap_key(KC_S,    KC_L,    &mtgap_registered[18], &qwerty_registered[18], record, mod_state);
+    case MT_T:    return process_mtgap_key(KC_T,    KC_K,    &mtgap_registered[19], &qwerty_registered[19], record, mod_state);
+    case MT_U:    return process_mtgap_key(KC_U,    KC_R,    &mtgap_registered[20], &qwerty_registered[20], record, mod_state);
+    case MT_V:    return process_mtgap_key(KC_V,    KC_DOT,  &mtgap_registered[21], &qwerty_registered[21], record, mod_state);
+    case MT_W:    return process_mtgap_key(KC_W,    KC_P,    &mtgap_registered[22], &qwerty_registered[22], record, mod_state);
+    case MT_X:    return process_mtgap_key(KC_X,    KC_B,    &mtgap_registered[23], &qwerty_registered[23], record, mod_state);
+    case MT_Y:    return process_mtgap_key(KC_Y,    KC_Q,    &mtgap_registered[24], &qwerty_registered[24], record, mod_state);
+    case MT_Z:    return process_mtgap_key(KC_Z,    KC_Z,    &mtgap_registered[25], &qwerty_registered[25], record, mod_state);
+    case MT_SCLN: return process_mtgap_key(KC_SCLN, KC_T,    &mtgap_registered[26], &qwerty_registered[26], record, mod_state);
+    case MT_QUOT: return process_mtgap_key(KC_QUOT, KC_C,    &mtgap_registered[27], &qwerty_registered[27], record, mod_state);
+    case MT_COMM: return process_mtgap_key(KC_COMM, KC_G,    &mtgap_registered[28], &qwerty_registered[28], record, mod_state);
+    case MT_DOT:  return process_mtgap_key(KC_DOT,  KC_V,    &mtgap_registered[29], &qwerty_registered[29], record, mod_state);
+    case MT_SLSH: return process_mtgap_key(KC_SLSH, KC_X,    &mtgap_registered[30], &qwerty_registered[30], record, mod_state);
+
     // }}}
 
     // Otherwise
@@ -224,90 +233,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
   }
 }
-
-// }}}
-
-// -- Key Overrides {{{
-
-// Key Overrides は Karabiner との相性が悪いため、併用できない。
-// 例えば QMK 側で LCmd-H -> Left とオーバーライドしたなら、Karabiner が干渉して LCmd-H -> LCmd-Left と出力されてしまう。
-// これは Karabiner の Complex Modifications に何もルールを登録していなかったとしても同じである。
-// 唯一の手段として、Key Overrides を使用したいキーボードを Karabiner の管理対象から外せば、Karabiner の干渉を免れることができる。
-// （当然 Karabiner と Key Overrides の併用はできなくなる）
-
-// const key_override_t lgui_h_override = ko_make_basic(MOD_BIT(KC_LGUI), KC_H, KC_LEFT);
-// const key_override_t lgui_j_override = ko_make_basic(MOD_BIT(KC_LGUI), KC_J, KC_DOWN);
-// const key_override_t lgui_k_override = ko_make_basic(MOD_BIT(KC_LGUI), KC_K, KC_UP);
-// const key_override_t lgui_l_override = ko_make_basic(MOD_BIT(KC_LGUI), KC_L, KC_RGHT);
-// const key_override_t *key_overrides[] = {
-//   &lgui_h_override,
-//   &lgui_j_override,
-//   &lgui_k_override,
-//   &lgui_l_override,
-// };
-
-// }}}
-
-// -- Combos {{{
-
-// コンボは Karabiner の同時押しと干渉するため、
-// 同時押し系の機能はすべて Karabiner 側で実装する。
-
-// enum combos {
-//   SD,
-//   KL,
-//   WE,
-//   IO,
-// };
-//
-// const uint16_t PROGMEM sd_combo[] = {KC_S, KC_D, COMBO_END};
-// const uint16_t PROGMEM kl_combo[] = {KC_K, KC_L, COMBO_END};
-// const uint16_t PROGMEM we_combo[] = {KC_W, KC_E, COMBO_END};
-// const uint16_t PROGMEM io_combo[] = {KC_I, KC_O, COMBO_END};
-//
-// combo_t key_combos[] = {
-//   [SD] = COMBO(sd_combo, MO(_NAV)),
-//   [KL] = COMBO(kl_combo, MO(_NAV)),
-//   [WE] = COMBO(we_combo, MO(_WIN)),
-//   [IO] = COMBO(io_combo, MO(_WIN)),
-// };
-
-// }}}
-
-// -- Combo Configuration {{{
-
-// // COMBO_TERM_PER_COMBO (Default: 50)
-// //
-// // Karabiner 側の閾値が 50 ms の場合、COMBO_TERM は 20 ms 程度でないと、Karabiner での同時押し判定に支障が出る。
-// // Karabiner 側の閾値が 70 ms なら、COMBO_TERM を 50 ms にしても実用に耐える。
-// // 新下駄配列の同時押しに絡まないキーでのコンボなら関係ないと思われる。
-// uint16_t get_combo_term(uint16_t index, combo_t *combo) {
-//   switch (index) {
-//     case SD: return 20;
-//     case KL: return 20;
-//     case WE: return 20;
-//     case IO: return 20;
-//   }
-//   return COMBO_TERM;
-// }
-//
-// // COMBO_MUST_TAP_PER_COMBO
-// bool get_combo_must_tap(uint16_t index, combo_t *combo) {
-//   switch (index) {
-//   }
-//   return false;
-// }
-//
-// // COMBO_MUST_HOLD_PER_COMBO
-// bool get_combo_must_hold(uint16_t index, combo_t *combo) {
-//   switch (index) {
-//     case SD: return true;
-//     case KL: return true;
-//     case WE: return true;
-//     case IO: return true;
-//   }
-//   return false;
-// }
 
 // }}}
 
